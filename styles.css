@@ -229,3 +229,64 @@ button:hover {
     box-shadow: 0 0 20px #0f0;
   }
 }
+
+/* General styles for desktop and mobile */
+body, html {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  height: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #fff;
+  text-align: center;
+  background-color: #000;
+  overflow-y: auto;
+}
+
+.content {
+  width: 100%;
+  max-width: 800px;
+  padding: 2rem;
+  margin: 0 auto; /* Center content */
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #32CD32;
+  margin-bottom: 1rem; /* Ensure space between title and button */
+}
+
+button {
+  background-color: #4CAF50;
+  color: #fff;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  background-image: linear-gradient(to right, #4CAF50, #32CD32);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), 0 0 20px #32CD32;
+  animation: glow 1.5s infinite alternate;
+  margin-bottom: 2rem;
+}
+
+/* Media query for mobile devices */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2rem; /* Decrease font size for smaller screens */
+    margin-top: 1200px; /* Add top margin to separate from content */
+    margin-bottom: 0.5rem; /* Adjust bottom margin for spacing */
+  }
+  
+  button {
+    padding: 0.8rem 1.5rem; /* Adjust button padding */
+    font-size: 0.9rem; /* Decrease font size */
+    margin-bottom: 1.5rem; /* Add bottom margin for spacing */
+  }
+  
+  .content {
+    padding: 1rem; /* Adjust content padding */
+  }
+}
