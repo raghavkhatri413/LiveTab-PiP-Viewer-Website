@@ -276,7 +276,7 @@ button {
 @media (max-width: 768px) {
   h1 {
     font-size: 2rem; /* Decrease font size for smaller screens */
-    margin-top: 1200px; /* Add top margin to separate from content */
+    margin-top: 1150px; /* Add top margin to separate from content */
     margin-bottom: 0.5rem; /* Adjust bottom margin for spacing */
   }
   
