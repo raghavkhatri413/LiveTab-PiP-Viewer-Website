@@ -14,21 +14,23 @@ async function startScreenCapture() {
         video.style.display = 'none';
         document.body.appendChild(video);
 
-        video.onloadedmetadata = async () => {
-            await video.play();
-            console.log('Video playback started');
+        await new Promise(resolve => {
+            video.onloadedmetadata = resolve;
+            video.play();
+        });
 
-            if (document.pictureInPictureEnabled) {
-                try {
-                    await video.requestPictureInPicture();
-                    console.log('Entered Picture-in-Picture mode');
-                } catch (error) {
-                    console.error('Error entering Picture-in-Picture mode:', error);
-                }
-            } else {
-                console.error('Picture-in-Picture is not supported in this browser.');
+        console.log('Video playback started');
+
+        if (document.pictureInPictureEnabled) {
+            try {
+                await video.requestPictureInPicture();
+                console.log('Entered Picture-in-Picture mode');
+            } catch (error) {
+                console.error('Error entering Picture-in-Picture mode:', error);
             }
-        };
+        } else {
+            console.error('Picture-in-Picture is not supported in this browser.');
+        }
     } catch (error) {
         console.error('Error capturing screen:', error);
     }
