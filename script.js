@@ -14,9 +14,11 @@ async function startScreenCapture() {
         video.style.display = 'none';
         document.body.appendChild(video);
 
-        await new Promise(resolve => {
-            video.onloadedmetadata = resolve;
-            video.play();
+        await new Promise((resolve) => {
+            video.onloadedmetadata = async () => {
+                await video.play();
+                resolve();
+            };
         });
 
         console.log('Video playback started');
