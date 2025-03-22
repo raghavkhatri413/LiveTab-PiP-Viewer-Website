@@ -2,18 +2,18 @@ async function startScreenCapture() {
     try {
         const constraints = {
             video: {
-                cursor: "always",
-                mediaSource: "screen"
+                cursor: "always"
             },
             audio: false
         };
 
         const stream = await navigator.mediaDevices.getDisplayMedia(constraints);
-        const video = document.createElement('video');
+        const video = document.createElement("video");
         video.srcObject = stream;
-        video.style.display = 'none';
+        video.style.display = "none";
         document.body.appendChild(video);
 
+        // Wait for metadata to be loaded before playing
         await new Promise((resolve) => {
             video.onloadedmetadata = async () => {
                 await video.play();
@@ -21,23 +21,39 @@ async function startScreenCapture() {
             };
         });
 
-        console.log('Video playback started');
+        console.log("Video playback started");
 
-        if (document.pictureInPictureEnabled) {
+        // Ensure PiP mode is supported
+        if (document.pictureInPictureEnabled && !video.disablePictureInPicture) {
             try {
+                if (document.pictureInPictureElement) {
+                    await document.exitPictureInPicture();
+                }
                 await video.requestPictureInPicture();
-                console.log('Entered Picture-in-Picture mode');
+                console.log("Entered Picture-in-Picture mode");
+
+                // Handle PiP exit (restart if needed)
+                video.addEventListener("leavepictureinpicture", async () => {
+                    console.log("PiP exited, restarting...");
+                    setTimeout(async () => {
+                        if (document.pictureInPictureEnabled) {
+                            await video.requestPictureInPicture();
+                        }
+                    }, 500);
+                });
+
             } catch (error) {
-                console.error('Error entering Picture-in-Picture mode:', error);
+                console.error("Error entering Picture-in-Picture mode:", error);
             }
         } else {
-            console.error('Picture-in-Picture is not supported in this browser.');
+            console.error("Picture-in-Picture is not supported in this browser.");
         }
     } catch (error) {
-        console.error('Error capturing screen:', error);
+        console.error("Error capturing screen:", error);
     }
 }
 
-document.getElementById('captureEntireScreen').addEventListener('click', async () => {
+// Attach event listener to button
+document.getElementById("captureEntireScreen").addEventListener("click", async () => {
     await startScreenCapture();
 });
