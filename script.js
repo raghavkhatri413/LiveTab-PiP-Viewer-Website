@@ -13,7 +13,6 @@ async function startScreenCapture() {
         video.style.display = "none";
         document.body.appendChild(video);
 
-        // Wait for metadata to be loaded before playing
         await new Promise((resolve) => {
             video.onloadedmetadata = async () => {
                 await video.play();
@@ -23,7 +22,6 @@ async function startScreenCapture() {
 
         console.log("Video playback started");
 
-        // Ensure PiP mode is supported
         if (document.pictureInPictureEnabled && !video.disablePictureInPicture) {
             try {
                 if (document.pictureInPictureElement) {
@@ -32,7 +30,6 @@ async function startScreenCapture() {
                 await video.requestPictureInPicture();
                 console.log("Entered Picture-in-Picture mode");
 
-                // Handle PiP exit (restart if needed)
                 video.addEventListener("leavepictureinpicture", async () => {
                     console.log("PiP exited, restarting...");
                     setTimeout(async () => {
@@ -53,7 +50,6 @@ async function startScreenCapture() {
     }
 }
 
-// Attach event listener to button
 document.getElementById("captureEntireScreen").addEventListener("click", async () => {
     await startScreenCapture();
 });
