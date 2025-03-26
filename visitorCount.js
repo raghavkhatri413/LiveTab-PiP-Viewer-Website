@@ -1,57 +1,92 @@
-// Import Firebase functions
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import { getDatabase, ref, get, set, onValue, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+import { getDatabase, ref, get, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-// Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCn2-rTUJxnwp9Pi6jqYWu_xDMxbGl7MUg",
-  authDomain: "live-tab-pip-viewer.firebaseapp.com",
-  databaseURL: "https://live-tab-pip-viewer-default-rtdb.firebaseio.com",
-  projectId: "live-tab-pip-viewer",
-  storageBucket: "live-tab-pip-viewer.firebasestorage.app",
-  messagingSenderId: "769065230447",
-  appId: "1:769065230447:web:e0be917155de2935672d9a",
-  measurementId: "G-3474L6ND6H"
+    apiKey: import.meta.env.VITE_API_KEY,
+    authDomain: import.meta.env.VITE_AUTH_DOMAIN,
+    databaseURL: import.meta.env.VITE_DATABASE_URL,
+    projectId: import.meta.env.VITE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_APP_ID,
+    measurementId: import.meta.env.VITE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
-// Select HTML elements
 const visitorCountElement = document.getElementById("visitorCount");
 const liveUsersElement = document.getElementById("liveUsers");
 
-// 🔹 Function to update total visitor count
+function generateUniqueId() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
 function updateVisitorCount() {
     const visitorRef = ref(database, "visitorCount");
-    
-    get(visitorRef).then((snapshot) => {
-        let count = snapshot.exists() ? snapshot.val() : 0;
-        set(visitorRef, count + 1); // Increment visitor count in Firebase
-        visitorCountElement.innerText = `Total Visits: ${count + 1}`;
-    }).catch(error => console.error("Error fetching visitor count:", error));
+    let deviceId = localStorage.getItem("deviceId");
+
+    if (!deviceId) {
+        deviceId = generateUniqueId();
+        localStorage.setItem("deviceId", deviceId);
+
+        get(visitorRef).then((snapshot) => {
+            let count = snapshot.exists() ? snapshot.val() : 0;
+            set(visitorRef, count + 1);
+            console.log("Visitor count incremented:", count + 1);
+        }).catch(error => {
+            console.error("Error fetching/setting visitor count:", error);
+        });
+    }
+
+    onValue(visitorRef, (snapshot) => {
+        if (snapshot.exists()) {
+            visitorCountElement.innerText = `Total Visits: ${snapshot.val()}`;
+            console.log("Visitor count updated:", snapshot.val());
+        } else {
+            visitorCountElement.innerText = "Total Visits: 0";
+            console.log("No visitor count data.");
+        }
+    }, (error) => {
+        console.error("onValue error for visitor count:", error);
+        visitorCountElement.innerText = "Error loading visits.";
+    });
 }
 
-// 🔹 Function to update live users count
 function updateLiveUsers() {
     const liveUsersRef = ref(database, "liveUsers");
+    const userId = generateUniqueId();
 
-    // Add current user to the liveUsers count
-    set(liveUsersRef, increment(1));
+    set(ref(database, `liveUsers/${userId}`), true)
+        .catch(error => console.error("Error incrementing live users:", error));
 
-    // Listen for live users count in real-time
     onValue(liveUsersRef, (snapshot) => {
-        let count = snapshot.exists() ? snapshot.val() : 0;
-        liveUsersElement.innerText = `Live Users: ${count}`;
+        if (snapshot.exists() && typeof snapshot.val() === 'object') {
+            const count = Object.keys(snapshot.val()).length;
+            liveUsersElement.innerText = `Live Users: ${count}`;
+            console.log("Live users loaded:", count);
+        } else {
+            liveUsersElement.innerText = "Live Users: 0";
+            console.log("No live users data");
+        }
+    }, (error) => {
+        console.error("onValue error:", error);
+        liveUsersElement.innerText = "Error loading live users.";
     });
 
-    // Remove user when they leave
     window.addEventListener("beforeunload", () => {
-        set(liveUsersRef, increment(-1));
+        set(ref(database, `liveUsers/${userId}`), null)
+            .catch(error => console.error("Error decrementing live users:", error));
+    });
+
+    window.addEventListener("unload", () => {
+        set(ref(database, `liveUsers/${userId}`), null)
+            .catch(error => console.error("Error decrementing live users:", error));
     });
 }
 
-// Run functions on page load
 updateVisitorCount();
 updateLiveUsers();
