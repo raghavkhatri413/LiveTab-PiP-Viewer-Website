@@ -57,49 +57,57 @@ function updateVisitorCount() {
 }
 
 function updateLiveUsers() {
-    const liveUsersRef = ref(database, "liveUsers");
-    const userId = generateUniqueId();
-    const userRef = ref(database, `liveUsers/${userId}`);
+    const isMobile = window.screen.width <= 768; // Adjust 768 as needed
 
-    function sendHeartbeat() {
-        set(userRef, serverTimestamp())
-            .catch(error => console.error("Error sending heartbeat:", error));
-    }
+    if (!isMobile) {
+        const liveUsersRef = ref(database, "liveUsers");
+        const userId = generateUniqueId();
+        const userRef = ref(database, `liveUsers/${userId}`);
 
-    sendHeartbeat(); // Initial heartbeat
-    const heartbeatInterval = setInterval(sendHeartbeat, 30000); // Send heartbeat every 30 seconds
-
-    onValue(liveUsersRef, (snapshot) => {
-        if (snapshot.exists() && typeof snapshot.val() === 'object') {
-            const users = snapshot.val();
-            const now = Date.now();
-            let activeCount = 0;
-
-            for (const id in users) {
-                if (now - users[id] < 60000) {
-                    activeCount++;
-                }
-            }
-
-            liveUsersElement.innerText = `Live Users: ${activeCount}`;
-            console.log("Live users loaded:", activeCount);
-        } else {
-            liveUsersElement.innerText = "Live Users: 0";
-            console.log("No live users data");
+        function sendHeartbeat() {
+            set(userRef, serverTimestamp())
+                .catch(error => console.error("Error sending heartbeat:", error));
         }
-    }, (error) => {
-        console.error("onValue error:", error);
-        liveUsersElement.innerText = "Error loading live users.";
-    });
 
-    window.addEventListener("beforeunload", () => {
-        clearInterval(heartbeatInterval);
-        set(userRef, null).catch(error => console.error("Error removing user:", error));
-    });
-    window.addEventListener("unload", () => {
-        clearInterval(heartbeatInterval);
-        set(userRef, null).catch(error => console.error("Error removing user:", error));
-    });
+        sendHeartbeat(); // Initial heartbeat
+        const heartbeatInterval = setInterval(sendHeartbeat, 30000); // Send heartbeat every 30 seconds
+
+        onValue(liveUsersRef, (snapshot) => {
+            if (snapshot.exists() && typeof snapshot.val() === 'object') {
+                const users = snapshot.val();
+                const now = Date.now();
+                let activeCount = 0;
+
+                for (const id in users) {
+                    if (now - users[id] < 60000) {
+                        activeCount++;
+                    }
+                }
+
+                liveUsersElement.innerText = `Live Users: ${activeCount}`;
+                console.log("Live users loaded:", activeCount);
+            } else {
+                liveUsersElement.innerText = "Live Users: 0";
+                console.log("No live users data");
+            }
+        }, (error) => {
+            console.error("onValue error:", error);
+            liveUsersElement.innerText = "Error loading live users.";
+        });
+
+        window.addEventListener("beforeunload", () => {
+            clearInterval(heartbeatInterval);
+            set(userRef, null).catch(error => console.error("Error removing user:", error));
+        });
+
+        window.addEventListener("unload", () => {
+            clearInterval(heartbeatInterval);
+            set(userRef, null).catch(error => console.error("Error removing user:", error));
+        });
+    } else {
+        liveUsersElement.innerText = "Live Users: 0";
+        console.log("Live users disabled on mobile.");
+    }
 }
 
 updateVisitorCount();

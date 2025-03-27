@@ -8,7 +8,6 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "deploy:functions": "firebase deploy --only functions"
+    "preview": "vite preview"
   }
 }
